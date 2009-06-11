@@ -12,7 +12,12 @@ module Biobot
       def handle_notifications
         if Notification.count > 0
           Notification.all.each do |notification|
-            message = Jabber::Message.new(notification.to, notification.body)
+            to   = notification.to
+            body = notification.body
+            message = Jabber::Message.new(
+              to =~ /@/ ? to : "#{to}@#{@server}",
+              body
+            )
             @client.send(message)
           end
           Notification.delete_all
