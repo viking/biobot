@@ -1,0 +1,8 @@
+xmpp:
+  server: localhost.localdomain
+  username: biobot
+  password: biobot
+
+database:
+  adapter: sqlite3
+  database: test/db.sqlite3

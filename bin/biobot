@@ -1,0 +1,35 @@
+#!/usr/bin/env ruby
+require 'optparse'
+require 'yaml'
+require 'biobot'
+require 'daemonize'
+
+options = {}
+OptionParser.new do |opts|
+  opts.banner = "Usage: biobot -c <filename>"
+
+  opts.on("-c", "--config FILENAME", "Specify the configuration file") do |c|
+    options[:config] = c
+  end
+
+  opts.on("-d", "--daemonize", "Daemonize the process") do
+    options[:daemon] = true
+  end
+end.parse!
+
+unless options[:config]
+  puts "No configuration file specified; see --help"
+  exit
+end
+raise Errno::ENOENT   unless File.exist?(options[:config])
+
+biobot = Biobot::Base.new(YAML.load_file(options[:config]))
+biobot.start
+Signal.trap("TERM") do
+  puts "Stopping biobot..."
+  biobot.stop
+end
+
+Daemonize.daemonize   if options[:daemon]
+loop do
+end

@@ -16,5 +16,3 @@ module Biobot
     end
   end
 end
-
-Biobot::Base.send(:include, Biobot::Commands::Greeting)

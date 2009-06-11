@@ -1,1 +1,7 @@
 .*swp
+old
+pkg
+test/db.sqlite3
+test.rb
+Session.vim
+config/biobot.yml

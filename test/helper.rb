@@ -1,8 +1,9 @@
 require 'test/unit'
-require File.dirname(__FILE__) + '/../lib/biobot'
 require 'rubygems'
 require 'mocha'
 require 'ruby-debug'
+require 'activerecord'
+require File.dirname(__FILE__) + '/../lib/biobot'
 
 module TestHelpers
   def self.included(base)
@@ -11,6 +12,7 @@ module TestHelpers
 
   module ClassMethods
     def register_command(*args); end
+    def register_periodical(*args); end
   end
 
   def mock_message(from, body)
@@ -19,6 +21,10 @@ module TestHelpers
 
   def clear_commands
     Biobot::Base.send(:class_variable_get, '@@command_chain').clear
+  end
+
+  def clear_periodicals
+    Biobot::Base.send(:class_variable_get, '@@periodicals').clear
   end
 end
 

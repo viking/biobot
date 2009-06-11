@@ -24,16 +24,16 @@ class TestBase < Test::Unit::TestCase
     Biobot::Base.new(@config)
   end
 
-  def test_connects_and_authenticates
+  def test_connects_and_authenticates_on_start
     @client.expects(:connect).with('localhost').returns(@client)
     @client.expects(:auth).with('secret')
-    Biobot::Base.new(@config)
+    Biobot::Base.new(@config).start
   end
 
-  def test_sends_presence
+  def test_sends_presence_on_start
     Jabber::Presence.expects(:new).returns(@presence)
     @client.expects(:send).with(@presence)
-    Biobot::Base.new(@config)
+    Biobot::Base.new(@config).start
   end
 
   def test_registers_callback
@@ -74,4 +74,27 @@ class TestBase < Test::Unit::TestCase
 #    biobot.expects(:send).never
 #    biobot.process(incoming)
 #  end
+
+  def test_timers_for_periodicals_on_start
+    clear_periodicals
+    Biobot::Base.register_periodical(:leetsaurus, 0.3)
+    Thread.expects(:new).once
+    Biobot::Base.new(@config).start
+  end
+
+  def test_active_record_usage
+    @config['database'] = {
+      "adapter" => "sqlite3",
+      "database" => "foo.sqlite3"
+    }
+    assert ActiveRecord::Base
+    ActiveRecord::Base.expects(:establish_connection).with(@config['database'])
+    Biobot::Base.new(@config)
+  end
+
+  def test_stop
+    @client.expects(:close!)
+    biobot = Biobot::Base.new(@config)
+    biobot.stop
+  end
 end
