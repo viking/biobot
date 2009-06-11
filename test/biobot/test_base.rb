@@ -36,9 +36,9 @@ class TestBase < Test::Unit::TestCase
     Biobot::Base.new(@config).start
   end
 
-  def test_registers_callback
+  def test_registers_callback_on_start
     @client.expects(:add_message_callback)
-    Biobot::Base.new(@config)
+    Biobot::Base.new(@config).start
   end
 
   def test_message_processing_chain

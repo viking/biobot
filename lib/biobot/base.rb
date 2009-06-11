@@ -22,10 +22,6 @@ module Biobot
       @client = Jabber::Client.new(@jid)
       @presence = Jabber::Presence.new
 
-      @client.add_message_callback do |message|
-        process(message) if message.body
-      end
-
       @threads = []
     end
 
@@ -44,6 +40,10 @@ module Biobot
       @client.connect(@server)
       @client.auth(@password)
       @client.send(@presence)
+
+      @client.add_message_callback do |message|
+        process(message) if message.body
+      end
 
       @@periodicals.each do |(method, delay)|
         thread = Thread.new { loop { self.send(method); sleep(delay) } }
