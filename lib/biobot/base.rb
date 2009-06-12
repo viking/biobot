@@ -7,7 +7,11 @@ module Biobot
 
     @@periodicals = []
     def self.register_periodical(method, delay)
-      @@periodicals << [method, delay]
+      @@periodicals << {
+        :method => method,
+        :delay  => delay,
+        :last_run => nil
+      }
     end
 
     def initialize(config)
@@ -19,10 +23,12 @@ module Biobot
         ActiveRecord::Base.establish_connection(config['database'])
       end
 
+      @log = config['logfile'] ? Logger.new(config['logfile']) : nil
+
       @client = Jabber::Client.new(@jid)
       @presence = Jabber::Presence.new
 
-      @threads = []
+      @message_buffer = []
     end
 
     def process(message)
@@ -42,19 +48,40 @@ module Biobot
       @client.send(@presence)
 
       @client.add_message_callback do |message|
-        process(message) if message.body
+        @message_buffer << message  if message.body
       end
+      main_loop
+    end
 
-      @@periodicals.each do |(method, delay)|
-        thread = Thread.new { loop { self.send(method); sleep(delay) } }
-        @threads << thread
+    def main_loop
+      @main = Thread.new do
+        loop do
+          while !@message_buffer.empty?
+            process(@message_buffer.shift)
+          end
+          @@periodicals.size.times do |i|
+            last_run = @@periodicals[i][:last_run]
+            if last_run.nil? || (Time.now - last_run) >= @@periodicals[i][:delay]
+              @log.info "Running #{@@periodicals[i][:method]}"      if @log
+
+              self.send(@@periodicals[i][:method])
+              @@periodicals[i][:last_run] = Time.now
+
+              @log.info "Done running #{@@periodicals[i][:method]}" if @log
+            end
+          end
+          sleep 1
+        end
       end
     end
 
+    def join
+      @main.join
+    end
+
     def stop
-      @threads.each { |t| t.exit }
-      @threads.clear
       @client.close!
+      @main.kill
     end
   end
 end

@@ -77,9 +77,10 @@ class TestBase < Test::Unit::TestCase
 
   def test_timers_for_periodicals_on_start
     clear_periodicals
-    Biobot::Base.register_periodical(:leetsaurus, 0.3)
-    Thread.expects(:new).once
-    Biobot::Base.new(@config).start
+    Biobot::Base.register_periodical(:leetsaurus, 10)
+    biobot = Biobot::Base.new(@config)
+    biobot.expects(:leetsaurus)
+    biobot.start
   end
 
   def test_active_record_usage
@@ -95,6 +96,18 @@ class TestBase < Test::Unit::TestCase
   def test_stop
     @client.expects(:close!)
     biobot = Biobot::Base.new(@config)
+    biobot.start
     biobot.stop
+  end
+
+  def test_logger
+    Logger.expects(:new).with('biobot.log')
+    @config['logfile'] = 'biobot.log'
+    biobot = Biobot::Base.new(@config)
+  end
+
+  def test_nil_logger
+    Logger.expects(:new).never
+    biobot = Biobot::Base.new(@config)
   end
 end

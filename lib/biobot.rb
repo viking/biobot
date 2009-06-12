@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'xmpp4r'
+require 'logger'
 require 'active_record'
 
 require File.dirname(__FILE__) + '/biobot/base'

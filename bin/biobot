@@ -2,7 +2,6 @@
 require 'optparse'
 require 'yaml'
 require 'biobot'
-require 'daemonize'
 
 options = {}
 OptionParser.new do |opts|
@@ -25,11 +24,4 @@ raise Errno::ENOENT   unless File.exist?(options[:config])
 
 biobot = Biobot::Base.new(YAML.load_file(options[:config]))
 biobot.start
-Signal.trap("TERM") do
-  puts "Stopping biobot..."
-  biobot.stop
-end
-
-Daemonize.daemonize   if options[:daemon]
-loop do
-end
+biobot.join
